@@ -44,10 +44,11 @@ EXPOSE 5901 6080
 
 # Create autostart file for Openbox to launch xeyes and DOSBox in separate windows
 RUN mkdir -p /root/.config/openbox && \
-    echo "dosbox -conf /root/basebox.conf &" >> /root/.config/openbox/autostart
+    echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf &" >> /root/.config/openbox/autostart
 
 # Start Xvfb, Openbox, x11vnc, and noVNC
 CMD /usr/bin/Xvfb :1 -screen 0 800x600x16 +extension XTEST & \
     openbox-session & \
-    x11vnc -display :1 -rfbport 5901 -nopw -listen localhost -forever -noxrecord -noxfixes & \
+    x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 & \
+    sleep 5 && xset -display :1 m 0 0 && \
     /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc
