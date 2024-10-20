@@ -19,7 +19,7 @@ dbus-launch --exit-with-session &
 /usr/bin/lxsession &
 
 # Start VNC server for remote access
-x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 &
+x11vnc -display :1 -ncache 10 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 &
 
 # Start noVNC for web-based access
 sleep 5 && /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc &
