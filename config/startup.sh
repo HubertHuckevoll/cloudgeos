@@ -8,7 +8,6 @@ export SDL_MOUSE_RELATIVE=0
 # Autostart configuration: Add the commands to run dosbox-staging via LXDE
 mkdir -p /root/.config/lxsession/LXDE && \
     echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
-echo "pcmanfm --desktop-off" >> /root/.config/lxsession/LXDE/autostart
 
 # Start Xvfb (Virtual framebuffer)
 /usr/bin/Xvfb :1 -screen 0 1024x768x16 +extension XTEST &
