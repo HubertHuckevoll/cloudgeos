@@ -7,8 +7,6 @@ FROM debian:bookworm-slim
 # Install necessary packages including LXDE, dosbox-staging, and VNC server
 RUN apt-get update && apt-get install -y \
     lxde \
-    tigervnc-standalone-server \
-    tigervnc-common \
     xvfb \
     websockify \
     x11vnc \
@@ -22,6 +20,8 @@ RUN apt-get update && apt-get install -y \
     lxappearance \
     policykit-1 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get remove -y lxpolkit
 
 # Download and set up noVNC
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \

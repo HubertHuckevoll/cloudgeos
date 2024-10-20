@@ -6,22 +6,17 @@ export DISPLAY=:1
 export SDL_MOUSE_RELATIVE=0
 
 # Autostart configuration: Add the commands to run dosbox-staging
-mkdir -p /root/.config/lxsession/LXDE && echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
+mkdir -p /root/.config/lxsession/LXDE && \
+    echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
 
 # Start Xvfb (Virtual framebuffer)
 /usr/bin/Xvfb :1 -screen 0 1024x768x16 +extension XTEST &
 
-# Wait for Xvfb to initialize
-sleep 2
-
 # Start dbus (ensure dbus is running for lxsession)
 dbus-launch --exit-with-session &
 
-# Start Polkit for authentication
-/usr/lib/policykit-1/polkitd --no-debug &
-
 # Start LXDE session (including lxsession)
-lxsession &
+/usr/bin/lxsession &
 
 # Start VNC server for remote access
 x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 &
