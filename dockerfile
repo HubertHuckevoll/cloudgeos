@@ -1,6 +1,4 @@
 # Docker commands
-# 
-#sudo docker stop $(sudo docker ps -a -q)
 
 # Use a Debian base image
 FROM debian:bookworm-slim
@@ -21,17 +19,13 @@ RUN apt-get update && apt-get install -y \
     python3-pyxdg \
     dbus-x11 \
     lxappearance \
+    policykit-1 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Download and set up noVNC
 RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
     && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify \
     && ln -s /opt/novnc/vnc_lite.html /opt/novnc/index.html
-
-# Set environment variables for SDL and X11
-ENV SDL_VIDEODRIVER=x11
-ENV DISPLAY=:1
-ENV SDL_MOUSE_RELATIVE=0
 
 # Copy PC/GEOS installation to the container
 COPY ./localpc/ensemble /root/localpc/ensemble
@@ -43,13 +37,9 @@ COPY ./basebox.conf /root
 # Expose ports for VNC and noVNC
 EXPOSE 5901 6080
 
-# Autostart configuration: Add the commands to run dosbox-staging
-RUN mkdir -p /root/.config/lxsession/LXDE && \
-    echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
+# Copy the startup script
+COPY ./startup.sh /root/startup.sh
+RUN chmod +x /root/startup.sh
 
 # Start Xvfb, LXDE, x11vnc, and noVNC
-CMD /usr/bin/Xvfb :1 -screen 0 1024x768x16 +extension XTEST & \
-    startlxde & \
-    x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 & \
-    sleep 5 && xset -display :1 m 0 0 && \
-    /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc
+CMD ["/root/startup.sh"]
