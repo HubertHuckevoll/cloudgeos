@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     policykit-1 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# this is part of policykit-1 and produces error messages on startup
+# therefore it has to go
 RUN apt-get remove -y lxpolkit
 
 # Download and set up noVNC
