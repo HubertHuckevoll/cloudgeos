@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <desktops>
+    <number>1</number>
+    <firstdesk>1</firstdesk>
+    <names>
+      <name>PC/GEOS Desktop</name>
+    </names>
+    <popupTime>0</popupTime>
+  </desktops>
+  <keyboard>
+    <!-- Remove all keybindings related to desktop switching -->
+  </keyboard>
+  <mouse>
+    <context name="Desktop">
+      <!-- Remove mouse scroll bindings -->
+    </context>
+  </mouse>
+</openbox_config>

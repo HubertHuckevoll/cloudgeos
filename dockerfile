@@ -31,15 +31,19 @@ RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
 # Copy PC/GEOS installation to the container
 COPY ./localpc/ensemble /root/localpc/ensemble
 
-# Copy basebox and dosbox.conf
+# Copy basebox and basebox.conf
 COPY ./pcgeos-basebox/ /root/pcgeos-basebox
-COPY ./basebox.conf /root
+COPY ./config/basebox.conf /root
+
+# Copy the configuration files for openbox
+COPY ./config/desktop-items-0.conf /root/.config/pcmanfm/LXDE/desktop-items-0.conf
+COPY ./config/rc.xml /root/.config/openbox/rc.xml
 
 # Expose ports for VNC and noVNC
 EXPOSE 5901 6080
 
 # Copy the startup script
-COPY ./startup.sh /root/startup.sh
+COPY ./config/startup.sh /root/startup.sh
 RUN chmod +x /root/startup.sh
 
 # Start Xvfb, LXDE, x11vnc, and noVNC
