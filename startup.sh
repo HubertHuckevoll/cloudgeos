@@ -5,7 +5,7 @@ export SDL_VIDEODRIVER=x11
 export DISPLAY=:1
 export SDL_MOUSE_RELATIVE=0
 
-# Autostart configuration: Add the commands to run dosbox-staging
+# Autostart configuration: Add the commands to run dosbox-staging via LXDE
 mkdir -p /root/.config/lxsession/LXDE && \
     echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
 
@@ -24,5 +24,16 @@ x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -s
 # Start noVNC for web-based access
 sleep 5 && /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc &
 
-# Ensure the script waits for all background processes to finish
-wait
+# Wait for dosbox-staging process to start
+while ! pgrep -f "basebox"; do
+    sleep 1
+done
+
+# Continuously monitor dosbox-staging process, and shut down LXDE when it ends
+while pgrep -f "basebox" > /dev/null; do
+    sleep 1
+done
+
+# Shutdown LXDE and the container when dosbox-staging closes
+echo "Basebox closed, shutting down LXDE and container..."
+pkill -u root -x lxsession
