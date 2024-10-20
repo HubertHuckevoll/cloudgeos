@@ -1,17 +1,18 @@
-# docker system prune -a
+# Docker commands
+# 
+#sudo docker stop $(sudo docker ps -a -q)
 
 # Use a Debian base image
 FROM debian:bookworm-slim
 
-# Install necessary packages including Openbox, xeyes, dosbox, and VNC server
+# Install necessary packages including LXDE, dosbox-staging, and VNC server
 RUN apt-get update && apt-get install -y \
     lxde \
-    openbox \
-    tightvncserver \
+    tigervnc-standalone-server \
+    tigervnc-common \
     xvfb \
     websockify \
     x11vnc \
-    dosbox \
     sudo \
     git \
     procps \
@@ -42,13 +43,13 @@ COPY ./basebox.conf /root
 # Expose ports for VNC and noVNC
 EXPOSE 5901 6080
 
-# Create autostart file for Openbox to launch xeyes and DOSBox in separate windows
-RUN mkdir -p /root/.config/openbox && \
-    echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf &" >> /root/.config/openbox/autostart
+# Autostart configuration: Add the commands to run dosbox-staging
+RUN mkdir -p /root/.config/lxsession/LXDE && \
+    echo "/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf" > /root/.config/lxsession/LXDE/autostart
 
-# Start Xvfb, Openbox, x11vnc, and noVNC
-CMD /usr/bin/Xvfb :1 -screen 0 800x600x16 +extension XTEST & \
-    openbox-session & \
+# Start Xvfb, LXDE, x11vnc, and noVNC
+CMD /usr/bin/Xvfb :1 -screen 0 1024x768x16 +extension XTEST & \
+    startlxde & \
     x11vnc -display :1 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 & \
     sleep 5 && xset -display :1 m 0 0 && \
     /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc
