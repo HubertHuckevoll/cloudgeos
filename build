@@ -1,0 +1,4 @@
+#!/bin/bash
+sudo docker build -t cloudgeos .
+sudo docker run -p 6080:6080 cloudgeos
+sudo docker stop $(sudo docker ps -a -q)
