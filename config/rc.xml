@@ -8,12 +8,12 @@
     </names>
     <popupTime>0</popupTime>
   </desktops>
-  <keyboard>
-    <!-- Remove all keybindings related to desktop switching -->
-  </keyboard>
   <mouse>
     <context name="Desktop">
       <!-- Remove mouse scroll bindings -->
     </context>
   </mouse>
+  <keyboard>
+    <!-- Remove all keybindings related to desktop switching -->
+  </keyboard>
 </openbox_config>

@@ -4,6 +4,7 @@
 export SDL_VIDEODRIVER=x11
 export DISPLAY=:1
 export SDL_MOUSE_RELATIVE=0
+export SDL_VIDEO_X11_MOUSEACCEL=0/0/0
 
 # Autostart configuration: Add the commands to run dosbox-staging via LXDE
 mkdir -p /root/.config/lxsession/LXDE && \
@@ -19,7 +20,8 @@ dbus-launch --exit-with-session &
 /usr/bin/lxsession &
 
 # Start VNC server for remote access
-x11vnc -display :1 -ncache 10 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -grabptr -scale_cursor 1 &
+# -grabptr
+x11vnc -display :1 -ncache 10 -rfbport 5901 -nopw -forever -noxrecord -noxfixes -scale_cursor 1 &
 
 # Start noVNC for web-based access
 sleep 5 && /opt/novnc/utils/novnc_proxy --vnc localhost:5901 --listen 6080 --web /opt/novnc &
