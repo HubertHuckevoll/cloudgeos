@@ -2,7 +2,8 @@
 # Clean up: sudo docker system prune --all --force
 
 # Use a Debian base image
-FROM debian:bookworm-slim
+# FROM debian:bookworm-slim
+FROM debian:stable-slim
 
 # Install necessary packages including LXDE, dosbox-staging, and VNC server
 RUN apt-get update && apt-get install -y \
@@ -15,10 +16,8 @@ RUN apt-get update && apt-get install -y \
     procps \
     libsdl2-dev \
     libsdl2-net-2.0-0 \
-    python3-pyxdg \
     dbus-x11 \
     lxappearance \
-    policykit-1 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # this is part of policykit-1 and produces error messages on startup
