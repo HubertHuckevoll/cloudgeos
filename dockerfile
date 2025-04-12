@@ -1,51 +1,46 @@
-# Docker commands
-# Clean up: sudo docker system prune --all --force
+FROM debian:bookworm
 
-# Use a Debian base image
-# FROM debian:bookworm-slim
-FROM debian:stable-slim
-
-# Install necessary packages including LXDE, dosbox-staging, and VNC server
+# System-Tools, VNC, SDL und Entwicklungswerkzeuge
 RUN apt-get update && apt-get install -y \
-    lxde \
-    xvfb \
-    websockify \
-    x11vnc \
-    sudo \
-    git \
-    procps \
-    libsdl2-dev \
-    libsdl2-net-2.0-0 \
+    wget curl gnupg unzip ca-certificates \
+    tigervnc-standalone-server \
+    libsdl2-2.0-0 libsdl2-net-2.0-0 \
+    python3-websockify novnc \
     dbus-x11 \
-    lxappearance \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    xserver-xorg-input-evdev \
+    git build-essential gcc libevdev-dev \
+    xautomation
 
-# this is part of policykit-1 and produces error messages on startup
-# therefore it has to go
-RUN apt-get remove -y lxpolkit
+# DOSBox-Staging herunterladen und installieren (inkl. resources)
+RUN wget -O /tmp/dosbox-staging.tar.xz https://github.com/dosbox-staging/dosbox-staging/releases/download/v0.82.1/dosbox-staging-linux-x86_64-v0.82.1.tar.xz && \
+    mkdir -p /opt/dosbox-staging && \
+    tar -xf /tmp/dosbox-staging.tar.xz -C /opt/dosbox-staging && \
+    install -m 755 $(find /opt/dosbox-staging -type f -name dosbox) /usr/local/bin/dosbox-staging && \
+    mkdir -p /root/.config/dosbox && \
+    cp -r $(find /opt/dosbox-staging -type d -name glshaders) /root/.config/dosbox/ && \
+    rm -rf /tmp/dosbox-staging.tar.xz
 
-# Download and set up noVNC
-RUN git clone https://github.com/novnc/noVNC.git /opt/novnc \
-    && git clone https://github.com/novnc/websockify /opt/novnc/utils/websockify \
-    && ln -s /opt/novnc/vnc_lite.html /opt/novnc/index.html
+# Basebox hinzufügen
+# COPY pcgeos-basebox/ /root/pcgeos-basebox/
 
-# Copy PC/GEOS installation to the container
-COPY ./localpc/ensemble /root/localpc/ensemble
+# Basebox-Konfiguration kopieren
+COPY ./config/basebox.conf /root/basebox.conf
 
-# Copy basebox and basebox.conf
-COPY ./pcgeos-basebox/ /root/pcgeos-basebox
-COPY ./config/basebox.conf /root
+# GEOS herunterladen und entpacken
+RUN mkdir -p /root/geos && \
+    wget -O /tmp/geos.zip https://github.com/bluewaysw/pcgeos/releases/download/CI-latest/pcgeos-ensemble_nc.zip && \
+    unzip /tmp/geos.zip -d /root/geos && \
+    rm /tmp/geos.zip
 
-# Copy the configuration files for openbox
-COPY ./config/desktop-items-0.conf /root/.config/pcmanfm/LXDE/desktop-items-0.conf
-COPY ./config/rc.xml /root/.config/openbox/rc.xml
+# Optional: noVNC fix
+RUN ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 
-# Expose ports for VNC and noVNC
-EXPOSE 5901 6080
-
-# Copy the startup script
-COPY ./config/startup.sh /root/startup.sh
+# Startskript kopieren und ausführbar machen
+COPY config/startup.sh /root/startup.sh
 RUN chmod +x /root/startup.sh
 
-# Start Xvfb, LXDE, x11vnc, and noVNC
+# Aufräumen zum Schluss
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 5901 6080
 CMD ["/root/startup.sh"]
