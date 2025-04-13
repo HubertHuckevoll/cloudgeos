@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker build -t cloudgeos .
+sudo docker build -t geos-novnc .

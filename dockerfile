@@ -1,46 +1,35 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
-# System-Tools, VNC, SDL und Entwicklungswerkzeuge
-RUN apt-get update && apt-get install -y \
-    wget curl gnupg unzip ca-certificates \
-    tigervnc-standalone-server \
-    libsdl2-2.0-0 libsdl2-net-2.0-0 \
-    python3-websockify novnc \
-    dbus-x11 \
-    xserver-xorg-input-evdev \
-    git build-essential gcc libevdev-dev \
-    xautomation
+# Install QEMU, websockify, wget, Python3, unzip, ca-certs
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        qemu-system-i386 \
+        wget \
+        python3 \
+        python3-websockify \
+        unzip \
+        ca-certificates \
+        git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# DOSBox-Staging herunterladen und installieren (inkl. resources)
-RUN wget -O /tmp/dosbox-staging.tar.xz https://github.com/dosbox-staging/dosbox-staging/releases/download/v0.82.1/dosbox-staging-linux-x86_64-v0.82.1.tar.xz && \
-    mkdir -p /opt/dosbox-staging && \
-    tar -xf /tmp/dosbox-staging.tar.xz -C /opt/dosbox-staging && \
-    install -m 755 $(find /opt/dosbox-staging -type f -name dosbox) /usr/local/bin/dosbox-staging && \
-    mkdir -p /root/.config/dosbox && \
-    cp -r $(find /opt/dosbox-staging -type d -name glshaders) /root/.config/dosbox/ && \
-    rm -rf /tmp/dosbox-staging.tar.xz
+# Arbeitsverzeichnis
+WORKDIR /opt
 
-# Basebox hinzufügen
-# COPY pcgeos-basebox/ /root/pcgeos-basebox/
+# Download FreeDOS boot floppy
+RUN wget -O freedos.img \
+    https://raw.githubusercontent.com/codercowboy/freedosbootdisks/master/bootdisks/freedos.boot.disk.1.4MB.img
 
-# Basebox-Konfiguration kopieren
-COPY ./config/basebox.conf /root/basebox.conf
+# Hole noVNC (minimaler Clone)
+RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/novnc && \
+    ln -s /opt/novnc/vnc.html /opt/novnc/index.html
 
-# GEOS herunterladen und entpacken
-RUN mkdir -p /root/geos && \
-    wget -O /tmp/geos.zip https://github.com/bluewaysw/pcgeos/releases/download/CI-latest/pcgeos-ensemble_nc.zip && \
-    unzip /tmp/geos.zip -d /root/geos && \
-    rm /tmp/geos.zip
+# Kopiere Startup-Skript in Container
+COPY config/startup.sh /opt/startup.sh
+RUN chmod +x /opt/startup.sh
 
-# Optional: noVNC fix
-RUN ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
+# Ports: 6080 = noVNC Websocket, 5900 = QEMU VNC
+EXPOSE 6080
 
-# Startskript kopieren und ausführbar machen
-COPY config/startup.sh /root/startup.sh
-RUN chmod +x /root/startup.sh
-
-# Aufräumen zum Schluss
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-EXPOSE 5901 6080
-CMD ["/root/startup.sh"]
+# Start-Skript
+CMD ["/opt/startup.sh"]
