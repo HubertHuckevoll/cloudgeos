@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# Starte QEMU im Hintergrund (VNC auf :0 = TCP 5900)
+# Starte QEMU mit:
+# - A: = FreeDOS 1.4 Bootdisk (lokale x86BOOT.img)
+# - C: = GEOS als beschreibbares FAT-Laufwerk
 qemu-system-i386 \
   -drive file=/opt/freedos.img,format=raw,if=floppy \
+  -drive file=fat:rw:/opt/geos,format=raw,media=disk \
   -boot a \
   -m 16M \
   -vnc :0 &
 
-# Warte kurz, damit QEMU läuft
+# Websockify starten
 sleep 2
-
-# Starte websockify für noVNC (WebSocket-Proxy auf Port 6080)
 exec websockify --web=/opt/novnc 6080 localhost:5900
