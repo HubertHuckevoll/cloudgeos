@@ -30,12 +30,6 @@ RUN mkdir -p /opt/geos_src && \
 # GEOS.img (mit Partitionstabelle, aber unformatiert) in Container kopieren
 COPY config/geos.img /opt/geos.img
 
-# GEOS herunterladen und vorbereiten
-RUN mkdir -p /opt/geos_src && \
-    wget -O /tmp/geos.zip https://github.com/bluewaysw/pcgeos/releases/download/CI-latest/pcgeos-ensemble_nc.zip && \
-    unzip -o /tmp/geos.zip -d /opt/geos_src && \
-    rm /tmp/geos.zip
-
 # FAT16-Dateisystem ab Offset 1 MiB (2048 * 512) formatieren + GEOS-Dateien hineinkopieren
 RUN mformat -i /opt/geos.img@@1048576 -h 64 -t 64 -n 32 :: && \
     mcopy -i /opt/geos.img@@1048576 -s /opt/geos_src/* ::/

@@ -1,26 +1,32 @@
 #!/bin/bash
-
 set -e
 
-IMAGE=./geos.img
-IMAGE_SIZE_MB=64
+# Zielverzeichnis
+OUT=./
+IMG="$OUT/geos.img"
 
-echo "🛠 Erstelle leeres ${IMAGE_SIZE_MB} MiB großes Image: $IMAGE"
-dd if=/dev/zero of="$IMAGE" bs=1M count=$IMAGE_SIZE_MB
+# Imagegröße und Startoffset der Partition
+SIZE_MB=64
+PART_START_MB=1
+PART_START_SECTORS=$((PART_START_MB * 2048))  # 512-byte sectors
+PART_OFFSET=$((PART_START_SECTORS * 512))    # Byte-Offset für mcopy
 
-echo "🧩 Erstelle Partitionstabelle mit parted (msdos + 1 primäre Partition)"
-parted -s "$IMAGE" mklabel msdos
-parted -s "$IMAGE" mkpart primary fat16 1MiB 100%
+# Pfad zu den GEOS-Dateien
+GEOS_SRC=./
 
-echo "🔍 Suche freien Loop Device"
-LOOPDEV=$(losetup -f)
-echo "📎 Binde Image an $LOOPDEV"
-losetup -P "$LOOPDEV" "$IMAGE"
+echo "🛠️  Erzeuge leeres $SIZE_MB MiB Image..."
+mkdir -p "$OUT"
+dd if=/dev/zero of="$IMG" bs=1M count=$SIZE_MB
 
-echo "🧼 Formatiere Partition als FAT16"
-mkfs.fat -F 16 "${LOOPDEV}p1"
+echo "🧱 Erzeuge Partitionstabelle..."
+parted -s "$IMG" mklabel msdos
+parted -s "$IMG" mkpart primary fat16 ${PART_START_MB}MiB 100%
+parted -s "$IMG" set 1 boot on
 
-echo "📴 Trenne Loop Device wieder"
-losetup -d "$LOOPDEV"
+echo "🧼 Formatiere FAT16-Dateisystem in der Partition..."
+mkfs.fat -F 16 "$IMG" --offset=$PART_START_SECTORS
 
-echo "✅ Fertig: $IMAGE ist nun eine MBR-basierte FAT16-Festplatte"
+echo "📦 Kopiere GEOS-Dateien ins Image..."
+mcopy -i "$IMG@@$PART_OFFSET" -s "$GEOS_SRC"/* ::/
+
+echo "✅ Fertig: $IMG"
