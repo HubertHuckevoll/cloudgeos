@@ -1,34 +1,20 @@
-#!/bin/bash
-set -e
+#!/bin/sh
 
-echo "Starting D-Bus..."
-eval "$(dbus-launch --sh-syntax)"
+# Starte Xvnc sauber
+Xvnc :1 -geometry 800x600 -depth 24 -SecurityTypes None &
+sleep 2
 
-echo "Setting environment for SDL and mouse input..."
-export DISPLAY=:1
+# SDL-Konfig
 export SDL_VIDEODRIVER=x11
-export SDL_HINT_MOUSE_RELATIVE_MODE_WARP=1
-export SDL_MOUSEDEV=""
-export SDL_DEBUG=1
-export SDL_VIDEO_X11_WMCLASS=basebox
+export SDL_RENDER_DRIVER=software
+export SDL_OPENGL=0
+export LIBGL_ALWAYS_SOFTWARE=true
 
-echo "Starting TigerVNC (Xvnc)..."
-/usr/bin/Xvnc :1 \
-  -geometry 800x600 \
-  -depth 16 \
-  -SecurityTypes None \
-  -AlwaysShared &
+# Starte Window Manager (optional)
+matchbox-window-manager -use_cursor no -use_titlebar no &
 
-sleep 2  # give Xvnc time to initialize
+# Starte noVNC
+websockify --web=/usr/share/novnc/ 6080 localhost:5901 &
 
-echo "Starting Dosbox-Staging"
-/usr/local/bin/dosbox-staging -conf /root/basebox.conf &
-
-#echo "Starting Basebox..."
-#/root/pcgeos-basebox/binl64/basebox -conf /root/basebox.conf &
-
-echo "Starting noVNC..."
-/usr/bin/websockify --web=/usr/share/novnc 6080 localhost:5901
-
-# Keep the script running
-wait
+# Starte GEOS/Basebox
+basebox -conf /root/basebox.conf

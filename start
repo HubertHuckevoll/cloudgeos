@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker run --privileged --hostname geomachine -p 6080:6080 cloudgeos
+sudo docker run --hostname geomachine -p 6080:6080 cloudgeos

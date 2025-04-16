@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
 # System-Tools, VNC, SDL und Entwicklungswerkzeuge
 RUN apt-get update && apt-get install -y \
@@ -9,21 +9,21 @@ RUN apt-get update && apt-get install -y \
     dbus-x11 \
     xserver-xorg-input-evdev \
     git build-essential gcc libevdev-dev \
-    xautomation
+    matchbox-window-manager \
+    x11-utils \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# DOSBox-Staging herunterladen und installieren (inkl. resources)
-RUN wget -O /tmp/dosbox-staging.tar.xz https://github.com/dosbox-staging/dosbox-staging/releases/download/v0.82.1/dosbox-staging-linux-x86_64-v0.82.1.tar.xz && \
-    mkdir -p /opt/dosbox-staging && \
-    tar -xf /tmp/dosbox-staging.tar.xz -C /opt/dosbox-staging && \
-    install -m 755 $(find /opt/dosbox-staging -type f -name dosbox) /usr/local/bin/dosbox-staging && \
-    mkdir -p /root/.config/dosbox && \
-    cp -r $(find /opt/dosbox-staging -type d -name glshaders) /root/.config/dosbox/ && \
-    rm -rf /tmp/dosbox-staging.tar.xz
+# Ressourcen für Basebox
+COPY config/resources /tmp/resources
 
-# Basebox hinzufügen
-# COPY pcgeos-basebox/ /root/pcgeos-basebox/
+# Basebox (PC/GEOS-spezifische Version) installieren
+RUN wget -O /tmp/pcgeos-basebox.zip https://github.com/bluewaysw/pcgeos-basebox/releases/download/CI-latest-issue-2/pcgeos-basebox.zip && \
+    unzip /tmp/pcgeos-basebox.zip -d /opt/basebox && \
+    cp -r /tmp/resources /opt/basebox/pcgeos-basebox/binl64/ && \
+    install -m 755 /opt/basebox/pcgeos-basebox/binl64/basebox /usr/local/bin/basebox && \
+    rm -rf /tmp/pcgeos-basebox.zip
 
-# Basebox-Konfiguration kopieren
+# Basebox-Konfiguration
 COPY ./config/basebox.conf /root/basebox.conf
 
 # GEOS herunterladen und entpacken
@@ -32,15 +32,18 @@ RUN mkdir -p /root/geos && \
     unzip /tmp/geos.zip -d /root/geos && \
     rm /tmp/geos.zip
 
-# Optional: noVNC fix
+# Optional: noVNC Fix (für index.html)
 RUN ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 
-# Startskript kopieren und ausführbar machen
+# Startup-Skript kopieren und ausführbar machen
 COPY config/startup.sh /root/startup.sh
 RUN chmod +x /root/startup.sh
 
-# Aufräumen zum Schluss
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Setze Display fest
+ENV DISPLAY=:1
 
+# Expose VNC + Web
 EXPOSE 5901 6080
+
+# Verwende supervisord oder ein minimales Startskript
 CMD ["/root/startup.sh"]
