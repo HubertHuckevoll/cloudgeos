@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# GEOS als Festplatte (C:), Bootdisk als A:
+# Starte QEMU mit explizitem PS/2-Maus-Support (Standard, ohne USB-Geräte)
 qemu-system-i386 \
-  -drive file=/opt/freedos.img,format=raw,if=floppy \
-  -drive file=/opt/geos.img,format=raw,if=ide \
-  -boot a \
+  -vga std \
   -m 16M \
+  -drive file=/opt/geos.img,format=raw,if=ide \
+  -boot c \
+  -no-reboot \
   -vnc :0 &
 
 sleep 2

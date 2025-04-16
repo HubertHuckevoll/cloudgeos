@@ -18,21 +18,22 @@ RUN apt-get update && \
 
 WORKDIR /opt
 
-# MS-DOS 6.22 Bootdisk kopieren
-COPY config/DOS622.img /opt/freedos.img
-
-# GEOS herunterladen und vorbereiten
+# GEOS herunterladen und entpacken
 RUN mkdir -p /opt/geos_src && \
     wget -O /tmp/geos.zip https://github.com/bluewaysw/pcgeos/releases/download/CI-latest/pcgeos-ensemble_nc.zip && \
     unzip /tmp/geos.zip -d /opt/geos_src && \
     rm /tmp/geos.zip
 
-# GEOS.img (mit Partitionstabelle, aber unformatiert) in Container kopieren
-COPY config/geos.img /opt/geos.img
+# DOS-Image mit vorinstalliertem MS-DOS kopieren
+COPY config/dos622dsk.img /opt/geos.img
 
-# FAT16-Dateisystem ab Offset 1 MiB (2048 * 512) formatieren + GEOS-Dateien hineinkopieren
-RUN mformat -i /opt/geos.img@@1048576 -h 64 -t 64 -n 32 :: && \
-    mcopy -i /opt/geos.img@@1048576 -s /opt/geos_src/* ::/
+# GEOS nach C:\GEOS kopieren (Partition beginnt bei Offset 32256)
+RUN mmd -i /opt/geos.img@@32256 ::/GEOS && \
+    mcopy -i /opt/geos.img@@32256 -s /opt/geos_src/* ::/GEOS/
+
+# Copy ctmouse
+COPY config/ctmouse.exe /opt/ctmouse.exe
+RUN mcopy -i /opt/geos.img@@32256 /opt/ctmouse.exe ::/
 
 # noVNC installieren
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/novnc && \
