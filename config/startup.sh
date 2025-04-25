@@ -1,20 +1,22 @@
 #!/bin/sh
 
-# Starte Xvnc sauber
-Xvnc :1 -geometry 800x600 -depth 24 -SecurityTypes None &
-sleep 2
+# Port und Display
+PORT=10000
+DISPLAY_NUM=10
 
-# SDL-Konfig
-export SDL_VIDEODRIVER=x11
-export SDL_RENDER_DRIVER=software
-export SDL_OPENGL=0
-export LIBGL_ALWAYS_SOFTWARE=true
+# SDL: Raw Input
+export SDL_MOUSE_RELATIVE=1
+export SDL_VIDEO_X11_MOUSE_WARP=0
 
-# Starte Window Manager (optional)
-matchbox-window-manager -use_cursor no -use_titlebar no &
+# Cleanup
+rm -rf /tmp/.X11-unix/X$DISPLAY_NUM /tmp/xpra.$USER
 
-# Starte noVNC
-websockify --web=/usr/share/novnc/ 6080 localhost:5901 &
-
-# Starte GEOS/Basebox
-basebox -conf /root/basebox.conf
+# Start Xpra mit echtem Xorg (nicht Xvfb!)
+exec xpra start :$DISPLAY_NUM \
+  --start-child="basebox" \
+  --html=on \
+  --bind-tcp=0.0.0.0:$PORT \
+  --xvfb="Xorg -noreset +extension GLX +extension RANDR +extension RENDER" \
+  --input-devices=all \
+  --daemon=no \
+  --exit-with-children

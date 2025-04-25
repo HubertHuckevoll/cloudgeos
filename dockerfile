@@ -1,16 +1,12 @@
 FROM debian:bookworm-slim
 
-# System-Tools, VNC, SDL und Entwicklungswerkzeuge
+# System-Tools, Xpra und SDL
 RUN apt-get update && apt-get install -y \
-    wget curl gnupg unzip ca-certificates \
-    tigervnc-standalone-server \
+    wget curl unzip ca-certificates \
+    xpra xpra-html5 \
     libsdl2-2.0-0 libsdl2-net-2.0-0 \
-    python3-websockify novnc \
+    xserver-xorg-core xserver-xorg-video-dummy \
     dbus-x11 \
-    xserver-xorg-input-evdev \
-    git build-essential gcc libevdev-dev \
-    matchbox-window-manager \
-    x11-utils \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ressourcen für Basebox
@@ -32,18 +28,12 @@ RUN mkdir -p /root/geos && \
     unzip /tmp/geos.zip -d /root/geos && \
     rm /tmp/geos.zip
 
-# Optional: noVNC Fix (für index.html)
-RUN ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
+# Startup-Skript für Xpra
+COPY config/start-xpra-geos.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
-# Startup-Skript kopieren und ausführbar machen
-COPY config/startup.sh /root/startup.sh
-RUN chmod +x /root/startup.sh
+# Port für XPRA Web-Client
+EXPOSE 10000
 
-# Setze Display fest
-ENV DISPLAY=:1
-
-# Expose VNC + Web
-EXPOSE 5901 6080
-
-# Verwende supervisord oder ein minimales Startskript
-CMD ["/root/startup.sh"]
+# Entry Point
+CMD ["/usr/local/bin/startup.sh"]
