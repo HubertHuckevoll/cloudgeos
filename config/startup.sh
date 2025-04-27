@@ -15,9 +15,10 @@ cd /usr/local/share/basebox/resources
 # Cleanup
 rm -rf /tmp/.X11-unix/X$DISPLAY_NUM /tmp/xpra.$USER
 
+#--start-child="basebox -conf /root/basebox.conf" \
 # Start Xpra mit echtem Xorg
-exec xpra start :$DISPLAY_NUM \
-  --start-child="basebox -conf /root/basebox.conf" \
+exec xpra start-desktop :$DISPLAY_NUM \
+  --start-child="startlxde" \
   --html=on \
   --bind-tcp=0.0.0.0:$PORT \
   --xvfb="Xorg -noreset +extension GLX +extension RANDR +extension RENDER" \

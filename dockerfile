@@ -4,6 +4,8 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     wget curl unzip ca-certificates \
     xpra \
+    openbox \
+    lxde \
     libsdl2-2.0-0 libsdl2-net-2.0-0 \
     xserver-xorg-core xserver-xorg-video-dummy \
     dbus-x11 \
